@@ -1,0 +1,10 @@
+# Core numeric and scientific libraries
+numpy>=1.20.0
+scipy>=1.7.0
+matplotlib>=3.5.0
+
+# Configuration management
+pyyaml>=6.0.0
+
+# Type hints support
+typing-extensions>=4.0.0

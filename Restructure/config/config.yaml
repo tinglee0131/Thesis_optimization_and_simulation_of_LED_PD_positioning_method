@@ -1,0 +1,33 @@
+environment:
+  bandwidth: 370000   # Bandwidth(Hz)
+  background: 5.1e-6  # Background current(A)
+  gain: 1.14         # Multipath gain
+  threshold: 1e-9  # Signal threshold
+  tolerance: 0.05 # Position tolerance(m)
+  effective: 80 # Effective threshold(%)
+
+scenario:
+  type: 2
+  rot_max: 180 # polar plot yaw 極限(deg)
+
+system:
+  space_size: 10
+
+application:
+  mode: 'interactive_1to1'
+  # 'analysis' #'scenario' #'draw_config'   # 'interactive_1to1' #'interactive_mulmul' #'optimize'
+  save_results: true
+  weight_form: 'mean' # 'mean' or 'weight' calculating method
+
+led_system:
+  hard_ind: 3 # led hardware config index(choose from datasheet)
+  num: 4 # led total amount
+  config_num: 0 # 0: radial 放射狀 #1: radial with center 放射狀，一個放中間
+  alpha: 50  #Alpha(DEG) 方位角
+
+pd_system:
+  hard_ind: 2 # pd hardware config index(choose from datasheet)
+  num: 5 # pd total amount
+  config_num: 0 # 0: radial 放射狀 #1: radial with center 放射狀，一個放中間
+  alpha: 50  #Alpha(DEG) 方位角
+
