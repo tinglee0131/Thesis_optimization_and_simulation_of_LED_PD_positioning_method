@@ -9,7 +9,8 @@ This script provides a command-line interface to the positioning system,
 allowing users to run different visualization and analysis modes.
 """
 
-
+import matplotlib
+matplotlib.use('TkAgg')
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Dict, Any
@@ -86,7 +87,7 @@ def main():
 
     # Initialize solver
     solver = Solver(env, config)
-    solver.solve_mulmul()
+    solver.solve_mulmul() # initial solve complete
     
     
     
@@ -114,6 +115,7 @@ def main():
         # Launch interactive 1-to-1 visualization
         visualizer = Interactive1To1Visualizer(led_system, pd_system, solver)
         visualizer.show()
+        print('finish interactive_1to1')
     
     elif mode == "interactive_mulmul":
         # Launch interactive multi-point visualization

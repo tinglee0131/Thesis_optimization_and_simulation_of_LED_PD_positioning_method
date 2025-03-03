@@ -39,10 +39,11 @@ class Interactive1To1Visualizer:
         self.pd_system = pd_system
         self.solver = solver
         self.env = solver.env
+        self.testp = self.env.testp
         
         # Default test point for 1-to-1 visualization
-        self.testp_pos = np.array([[1, 1, 1.5]]).T
-        self.testp_rot = np.array([[np.pi, 0, 0]]).T
+        self.testp.testp_pos = np.array([[.3, 0.3, 1.5]]).T
+        self.testp.testp_rot = np.array([[np.pi, 0, 0]]).T
         
         # Initialize figure and axes
         self.fig = plt.figure(figsize=(12, 8))
@@ -76,9 +77,9 @@ class Interactive1To1Visualizer:
         y = 0.5 * np.sin(u) * np.sin(v)
         z = 0.5 * np.cos(v)
         self.sphere = self.ax.plot_wireframe(
-            x + self.testp_pos[0, 0],
-            y + self.testp_pos[1, 0],
-            z + self.testp_pos[2, 0],
+            x + self.testp.testp_pos[0, 0],
+            y + self.testp.testp_pos[1, 0],
+            z + self.testp.testp_pos[2, 0],
             color="w", alpha=0.2, edgecolor="#808080"
         )
         self.ref_sphere = self.ax.plot_wireframe(
@@ -93,9 +94,9 @@ class Interactive1To1Visualizer:
             arrow_length_ratio=0.2, color='firebrick', label='PD Coordinate System'
         )
         
-        arrow_rot = self.env.rotate_mat(self.testp_rot.flatten()) @ arrow
+        arrow_rot = self.env.rotate_mat(self.testp.testp_rot.flatten()) @ arrow
         self.axis_item = self.ax.quiver(
-            self.testp_pos[0, 0], self.testp_pos[1, 0], self.testp_pos[2, 0],
+            self.testp.testp_pos[0, 0], self.testp.testp_pos[1, 0], self.testp.testp_pos[2, 0],
             arrow_rot[0, :], arrow_rot[1, :], arrow_rot[2, :],
             arrow_length_ratio=0.1, color='b', label='LED Coordinate System'
         )
@@ -107,21 +108,21 @@ class Interactive1To1Visualizer:
         
         self.led_text = [None, None, None]
         self.led_text[0] = self.ax.text(
-            self.testp_pos[0, 0] + 1.1 * arrow_rot[0, 0],
-            self.testp_pos[1, 0] + 1.1 * arrow_rot[1, 0],
-            self.testp_pos[2, 0] + 1.1 * arrow_rot[2, 0],
+            self.testp.testp_pos[0, 0] + 1.1 * arrow_rot[0, 0],
+            self.testp.testp_pos[1, 0] + 1.1 * arrow_rot[1, 0],
+            self.testp.testp_pos[2, 0] + 1.1 * arrow_rot[2, 0],
             'x', color='b'
         )
         self.led_text[1] = self.ax.text(
-            self.testp_pos[0, 0] + 1.1 * arrow_rot[0, 1],
-            self.testp_pos[1, 0] + 1.1 * arrow_rot[1, 1],
-            self.testp_pos[2, 0] + 1.1 * arrow_rot[2, 1],
+            self.testp.testp_pos[0, 0] + 1.1 * arrow_rot[0, 1],
+            self.testp.testp_pos[1, 0] + 1.1 * arrow_rot[1, 1],
+            self.testp.testp_pos[2, 0] + 1.1 * arrow_rot[2, 1],
             'y', color='b'
         )
         self.led_text[2] = self.ax.text(
-            self.testp_pos[0, 0] + 1.1 * arrow_rot[0, 2],
-            self.testp_pos[1, 0] + 1.1 * arrow_rot[1, 2],
-            self.testp_pos[2, 0] + 1.1 * arrow_rot[2, 2],
+            self.testp.testp_pos[0, 0] + 1.1 * arrow_rot[0, 2],
+            self.testp.testp_pos[1, 0] + 1.1 * arrow_rot[1, 2],
+            self.testp.testp_pos[2, 0] + 1.1 * arrow_rot[2, 2],
             'z', color='b'
         )
         
@@ -151,7 +152,7 @@ class Interactive1To1Visualizer:
         else:
             self.ans = self.ax.quiver(0,0,0,dis*vec[0],dis*vec[1],dis*vec[2],color='k')
             self.text_item = self.ax.text(-2.5,-2.5,-2, f'Usable LED:{ledu} \nUsable PD:{pdu}\nError:{error:.4E}')
-            self.error_vec = self.quiver(dis*vec[0],dis*vec[1],dis*vec[2],self.env.testp.testp_pos[0,0]-dis*vec[0],self.env.testp.testp_pos[1,0]-dis*vec[1],self.env.testp.testp_pos[2,0]-dis*vec[2],color = 'magenta')
+            self.error_vec = self.quiver(dis*vec[0],dis*vec[1],dis*vec[2],self.testp.testp_pos[0,0]-dis*vec[0],self.testp.testp_pos[1,0]-dis*vec[1],self.env.testp.testp_pos[2,0]-dis*vec[2],color = 'magenta')
 
 
         # print('finished set up')
@@ -175,8 +176,8 @@ class Interactive1To1Visualizer:
         
         # Initial values
         init_val = np.concatenate([
-            self.testp_pos.flatten(),
-            self.testp_rot.flatten(),
+            self.testp.testp_pos.flatten(),
+            self.testp.testp_rot.flatten(),
             [self.led_system.num, self.pd_system.num,
              self.led_system.m, self.pd_system.m,
              np.log10(self.env.background), np.log10(self.env.bandwidth),
@@ -211,15 +212,15 @@ class Interactive1To1Visualizer:
         self.sliders[10].valtext.set_text(f'{self.env.background:.4E}')
         self.sliders[14].valtext.set_text(f'{self.pd_system.saturate:.4E}')
         
-        # Add reset button
-        reset_ax = plt.axes([0.8, 0.025, 0.1, 0.04])
-        self.reset_button = Button(reset_ax, 'Reset', hovercolor='0.975')
-        self.reset_button.on_clicked(self.reset)
+        # # Add reset button
+        # reset_ax = plt.axes([0.8, 0.025, 0.1, 0.04])
+        # self.reset_button = Button(reset_ax, 'Reset', hovercolor='0.975')
+        # self.reset_button.on_clicked(self.reset)
     
-    def reset(self, event):
-        """Reset sliders to initial values."""
-        for slider in self.sliders:
-            slider.reset()
+    # def reset(self, event):
+    #     """Reset sliders to initial values."""
+    #     for slider in self.sliders:
+    #         slider.reset()
     
     def on_slider_changed(self, val):
         """
@@ -229,13 +230,13 @@ class Interactive1To1Visualizer:
             val: New slider value (not used directly, we read all sliders)
         """
         # Update test point position and rotation
-        self.testp_pos = np.array([[
+        self.testp.testp_pos = np.array([[
             self.sliders[0].val,
             self.sliders[1].val,
             self.sliders[2].val
         ]]).T
         
-        self.testp_rot = np.array([[
+        self.testp.testp_rot = np.array([[
             self.sliders[3].val,
             self.sliders[4].val,
             self.sliders[5].val
@@ -246,6 +247,7 @@ class Interactive1To1Visualizer:
         self.pd_system.num = int(self.sliders[7].val)
         self.led_system.m = self.sliders[8].val
         self.pd_system.m = self.sliders[9].val
+
         
         # Update solver parameters
         self.env.background = 10 ** self.sliders[10].val
@@ -254,8 +256,8 @@ class Interactive1To1Visualizer:
         # Update hardware orientation
         led_alpha = np.deg2rad(self.sliders[12].val)
         pd_alpha = np.deg2rad(self.sliders[13].val)
-        self.led_system.set_config(0, led_alpha)
-        self.pd_system.set_config(0, pd_alpha)
+        self.led_system.set_config(self.led_system.config_num, led_alpha)
+        self.pd_system.set_config(self.pd_system.config_num, pd_alpha)
         
         # Update saturation and gain
         self.pd_system.saturate = 10 ** self.sliders[14].val
@@ -282,9 +284,16 @@ class Interactive1To1Visualizer:
             if text:
                 text.remove()
         
+        self.env.simulate_pd_sig()
+        self.solver.solve_mulmul()
+
+
+        testp_pos = self.testp.testp_pos
+        testp_rot = self.testp.testp_rot
+
         # Get rotation matrix for coordinate system visualization
         arrow = 0.5 * np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]]).T
-        arrow_rot = self.env.rotate_mat(self.testp_rot.flatten()) @ arrow
+        arrow_rot = self.env.rotate_mat(testp_rot.flatten()) @ arrow
         
         # Update sphere position
         u, v = np.meshgrid(np.linspace(0, 2*np.pi, 20), np.linspace(0, np.pi, 20))
@@ -292,36 +301,36 @@ class Interactive1To1Visualizer:
         y = 0.5 * np.sin(u) * np.sin(v)
         z = 0.5 * np.cos(v)
         self.sphere = self.ax.plot_wireframe(
-            x + self.testp_pos[0, 0],
-            y + self.testp_pos[1, 0],
-            z + self.testp_pos[2, 0],
+            x + testp_pos[0, 0],
+            y + testp_pos[1, 0],
+            z + testp_pos[2, 0],
             color="w", alpha=0.2, edgecolor="#808080"
         )
         
         # Update coordinate system visualization
         self.axis_item = self.ax.quiver(
-            self.testp_pos[0, 0], self.testp_pos[1, 0], self.testp_pos[2, 0],
+            testp_pos[0, 0], testp_pos[1, 0], testp_pos[2, 0],
             arrow_rot[0, :], arrow_rot[1, :], arrow_rot[2, :],
             arrow_length_ratio=0.1, color='b'
         )
         
         # Update coordinate labels
         self.led_text[0] = self.ax.text(
-            self.testp_pos[0, 0] + 1.1 * arrow_rot[0, 0],
-            self.testp_pos[1, 0] + 1.1 * arrow_rot[1, 0],
-            self.testp_pos[2, 0] + 1.1 * arrow_rot[2, 0],
+            testp_pos[0, 0] + 1.1 * arrow_rot[0, 0],
+            testp_pos[1, 0] + 1.1 * arrow_rot[1, 0],
+            testp_pos[2, 0] + 1.1 * arrow_rot[2, 0],
             'x', color='b'
         )
         self.led_text[1] = self.ax.text(
-            self.testp_pos[0, 0] + 1.1 * arrow_rot[0, 1],
-            self.testp_pos[1, 0] + 1.1 * arrow_rot[1, 1],
-            self.testp_pos[2, 0] + 1.1 * arrow_rot[2, 1],
+            testp_pos[0, 0] + 1.1 * arrow_rot[0, 1],
+            testp_pos[1, 0] + 1.1 * arrow_rot[1, 1],
+            testp_pos[2, 0] + 1.1 * arrow_rot[2, 1],
             'y', color='b'
         )
         self.led_text[2] = self.ax.text(
-            self.testp_pos[0, 0] + 1.1 * arrow_rot[0, 2],
-            self.testp_pos[1, 0] + 1.1 * arrow_rot[1, 2],
-            self.testp_pos[2, 0] + 1.1 * arrow_rot[2, 2],
+            testp_pos[0, 0] + 1.1 * arrow_rot[0, 2],
+            testp_pos[1, 0] + 1.1 * arrow_rot[1, 2],
+            testp_pos[2, 0] + 1.1 * arrow_rot[2, 2],
             'z', color='b'
         )
         
@@ -342,9 +351,9 @@ class Interactive1To1Visualizer:
             self.text_item.set_text(f'Usable LED: {ledu} \nUsable PD: {pdu}\nError: {error:.4E}')
             self.error_vec = self.ax.quiver(
                 dis*vec[0], dis*vec[1], dis*vec[2],
-                self.testp_pos[0, 0]-dis*vec[0],
-                self.testp_pos[1, 0]-dis*vec[1],
-                self.testp_pos[2, 0]-dis*vec[2],
+                testp_pos[0, 0]-dis*vec[0],
+                testp_pos[1, 0]-dis*vec[1],
+                testp_pos[2, 0]-dis*vec[2],
                 color='magenta'
             )
         
@@ -384,9 +393,7 @@ class InteractiveMultiVisualizer:
         self.scenario = scenario
         self.space_size = space_size
         self.rot_max = rot_max
-        
-        # Generate test points based on scenario
-        self.test_point = TestPoint(scenario, {'ma': space_size})
+        self.test_point = self.env.testp
         
         # Track maximum performance for optimization
         self.max_count = 0
@@ -402,14 +409,14 @@ class InteractiveMultiVisualizer:
         self.setup_sliders()
         
         # Solve initial configuration and update plot
-        self.solve_and_update()
+        self.generate_collections()
     
     def setup_plot(self):
         """Setup the plots for visualization."""
         self.fig.subplots_adjust(wspace=0.3, hspace=0.3)
         
         # Plot for translation samples with color indicating success rate
-        self.ax1 = self.fig.add_subplot(2, 3, 1, projection='3d')
+        self.ax1 = self.fig.add_subplot(2, 4, 1, projection='3d')
         self.ax1.set_box_aspect(aspect=(1, 1, 1))
         self.ax1.set_xlabel('x')
         self.ax1.set_ylabel('y')
@@ -429,18 +436,24 @@ class InteractiveMultiVisualizer:
             self.ax1.set_xlim3d(-1.5, 1.5)
             self.ax1.set_ylim3d(-1.5, 1.5)
             self.ax1.set_zlim3d(0, 3)
+        # self.sc1 = self.ax1.scatter(
+        #     self.test_point.testp_pos[0,:],
+        #     self.test_point.testp_pos[1,:],
+        #     self.test_point.testp_pos[2,:],
+        #     c = count_kpos,cmap=colormap,norm = normalizep,alpha=0.5)
+        # self.ax1.scatter(0,0,0,color='k',marker='x')
         
         self.ax1.set_title('Translation Samples')
         
         # Plot for rotation samples
-        self.ax2 = self.fig.add_subplot(2, 3, 4, projection='polar')
+        self.ax2 = self.fig.add_subplot(2, 5, 6, projection='polar')
         self.ax2.set_title('Rotation Samples')
         self.ax2.text(1, 1, 'pitch (degrees)', rotation=15)
         self.ax2.text(np.deg2rad(60), 80, 'yaw (degrees)')
         self.ax2.set_ylim([0, self.rot_max])
         
         # Plot for effective translation range
-        self.ax3 = self.fig.add_subplot(2, 3, 2, projection='3d')
+        self.ax3 = self.fig.add_subplot(2, 5, 2, projection='3d')
         self.ax3.set_box_aspect(aspect=(1, 1, 1))
         self.ax3.set_xlabel('x')
         self.ax3.set_ylabel('y')
@@ -460,14 +473,14 @@ class InteractiveMultiVisualizer:
         self.ax3.set_title('Effective Translation Range')
         
         # Plot for effective rotation range
-        self.ax4 = self.fig.add_subplot(2, 3, 5, projection='polar')
+        self.ax4 = self.fig.add_subplot(2, 5, 7, projection='polar')
         self.ax4.set_title('Effective Rotation Range')
         self.ax4.text(0, 0, 'pitch (degrees)', rotation=15)
         self.ax4.text(np.deg2rad(60), 80, 'yaw (degrees)')
         self.ax4.set_ylim([0, self.rot_max])
         
         # Plot for LED configuration
-        self.ax5 = self.fig.add_subplot(2, 3, 3, projection='3d')
+        self.ax5 = self.fig.add_subplot(2, 5, 3, projection='3d')
         self.ax5.xaxis.set_ticklabels([])
         self.ax5.yaxis.set_ticklabels([])
         self.ax5.zaxis.set_ticklabels([])
@@ -500,7 +513,7 @@ class InteractiveMultiVisualizer:
         self.ax5.plot_wireframe(x, y, z, color="w", alpha=0.15, edgecolor="#808080")
         
         # Plot for PD configuration
-        self.ax6 = self.fig.add_subplot(2, 3, 6, projection='3d')
+        self.ax6 = self.fig.add_subplot(2, 5, 8, projection='3d')
         self.ax6.xaxis.set_ticklabels([])
         self.ax6.yaxis.set_ticklabels([])
         self.ax6.zaxis.set_ticklabels([])
@@ -521,8 +534,7 @@ class InteractiveMultiVisualizer:
         
         # Add text for maximum performance
         self.max_text = self.fig.text(0.8, 0.1, 'Max: 0')
-        
-        # Initialize scatter plots (to be updated later)
+
         self.sc1 = None
         self.sc2 = None
         self.sc3 = None
@@ -530,15 +542,15 @@ class InteractiveMultiVisualizer:
         self.sc5 = None
         self.sc6 = None
         
-        # Add reset button
-        reset_ax = plt.axes([0.76, 0.05, 0.1, 0.04])
-        self.reset_button = Button(reset_ax, 'Reset', hovercolor='0.975')
-        self.reset_button.on_clicked(self.reset)
+        # # Add reset button
+        # reset_ax = plt.axes([0.76, 0.05, 0.1, 0.04])
+        # self.reset_button = Button(reset_ax, 'Reset', hovercolor='0.975')
+        # self.reset_button.on_clicked(self.reset)
         
-        # Add save button
-        save_ax = plt.axes([0.88, 0.05, 0.1, 0.04])
-        self.save_button = Button(save_ax, 'Save', hovercolor='0.975')
-        self.save_button.on_clicked(self.save_results)
+        # # Add save button
+        # save_ax = plt.axes([0.88, 0.05, 0.1, 0.04])
+        # self.save_button = Button(save_ax, 'Save', hovercolor='0.975')
+        # self.save_button.on_clicked(self.save_results)
     
     def setup_sliders(self):
         """Setup the sliders for interactive parameter adjustment."""
@@ -586,73 +598,73 @@ class InteractiveMultiVisualizer:
         self.sliders[10].valtext.set_text(f'{self.pd_system.saturate:.4E}')
         self.sliders[11].valtext.set_text(f'{self.pd_system.shunt:.4E}')
         
-        # Add configuration selection
-        config_ax = plt.axes([0.76, 0.15, 0.2, 0.1])
-        self.config_radio = RadioButtons(
-            config_ax, ('Config 0: Radial', 'Config 1: Radial+Center', 'Config 2: Dual-Ring'),
-            active=0
-        )
-        self.config_radio.on_clicked(self.on_config_changed)
+        # # Add configuration selection
+        # config_ax = plt.axes([0.76, 0.15, 0.2, 0.1])
+        # self.config_radio = RadioButtons(
+        #     config_ax, ('Config 0: Radial', 'Config 1: Radial+Center', 'Config 2: Dual-Ring'),
+        #     active=0
+        # )
+        # self.config_radio.on_clicked(self.on_config_changed)
     
-    def reset(self, event):
-        """Reset sliders to initial values."""
-        for slider in self.sliders:
-            slider.reset()
+    # def reset(self, event):
+    #     """Reset sliders to initial values."""
+    #     for slider in self.sliders:
+    #         slider.reset()
     
-    def save_results(self, event):
-        """Save current results to file."""
-        self.fig.savefig('optimization_results.png', dpi=300, bbox_inches='tight')
+    # def save_results(self, event):
+    #     """Save current results to file."""
+    #     self.fig.savefig('optimization_results.png', dpi=300, bbox_inches='tight')
         
-        # Save parameters and results to text file
-        with open('optimization_results.txt', 'w') as f:
-            f.write(f"Optimization Results\n")
-            f.write(f"==================\n")
-            f.write(f"Date: {np.datetime64('today')}\n\n")
+    #     # Save parameters and results to text file
+    #     with open('optimization_results.txt', 'w') as f:
+    #         f.write(f"Optimization Results\n")
+    #         f.write(f"==================\n")
+    #         f.write(f"Date: {np.datetime64('today')}\n\n")
             
-            f.write(f"Parameters:\n")
-            f.write(f"Tolerance: {self.solver.tolerance:.4f} m\n")
-            f.write(f"Effective Ratio: {self.solver.effective:.1f}%\n")
-            f.write(f"LED Count: {self.led_system.num}\n")
-            f.write(f"PD Count: {self.pd_system.num}\n")
-            f.write(f"LED Lambertian Order: {self.led_system.m:.2f}\n")
-            f.write(f"PD Lambertian Order: {self.pd_system.m:.2f}\n")
-            f.write(f"Background Current: {self.env.background:.4E} A\n")
-            f.write(f"Bandwidth: {self.env.bandwidth:.4E} Hz\n")
-            f.write(f"LED Alpha Angle: {np.rad2deg(self.led_system.ori_ang[0, 0]):.1f} deg\n")
-            f.write(f"PD Alpha Angle: {np.rad2deg(self.pd_system.ori_ang[0, 0]):.1f} deg\n")
-            f.write(f"PD Saturation Current: {self.pd_system.saturate:.4E} A\n")
-            f.write(f"Resistor: {self.pd_system.shunt:.4E} Ohm\n")
-            f.write(f"Multipath Gain: {self.solver.gain:.2f}\n\n")
+    #         f.write(f"Parameters:\n")
+    #         f.write(f"Tolerance: {self.solver.tolerance:.4f} m\n")
+    #         f.write(f"Effective Ratio: {self.solver.effective:.1f}%\n")
+    #         f.write(f"LED Count: {self.led_system.num}\n")
+    #         f.write(f"PD Count: {self.pd_system.num}\n")
+    #         f.write(f"LED Lambertian Order: {self.led_system.m:.2f}\n")
+    #         f.write(f"PD Lambertian Order: {self.pd_system.m:.2f}\n")
+    #         f.write(f"Background Current: {self.env.background:.4E} A\n")
+    #         f.write(f"Bandwidth: {self.env.bandwidth:.4E} Hz\n")
+    #         f.write(f"LED Alpha Angle: {np.rad2deg(self.led_system.ori_ang[0, 0]):.1f} deg\n")
+    #         f.write(f"PD Alpha Angle: {np.rad2deg(self.pd_system.ori_ang[0, 0]):.1f} deg\n")
+    #         f.write(f"PD Saturation Current: {self.pd_system.saturate:.4E} A\n")
+    #         f.write(f"Resistor: {self.pd_system.shunt:.4E} Ohm\n")
+    #         f.write(f"Multipath Gain: {self.env.gain:.2f}\n\n")
             
-            f.write(f"Results:\n")
-            f.write(f"Total successful samples: {self.max_count}\n")
-            f.write(f"Best LED Alpha: {self.max_led_alpha:.1f} deg\n")
-            f.write(f"Best PD Alpha: {self.max_pd_alpha:.1f} deg\n")
+    #         f.write(f"Results:\n")
+    #         f.write(f"Total successful samples: {self.max_count}\n")
+    #         f.write(f"Best LED Alpha: {self.max_led_alpha:.1f} deg\n")
+    #         f.write(f"Best PD Alpha: {self.max_pd_alpha:.1f} deg\n")
         
-        print(f"Results saved to optimization_results.png and optimization_results.txt")
+    #     print(f"Results saved to optimization_results.png and optimization_results.txt")
     
-    def on_config_changed(self, label):
-        """
-        Handler for configuration radio button changes.
+    # def on_config_changed(self, label):
+    #     """
+    #     Handler for configuration radio button changes.
         
-        Args:
-            label: Selected configuration label
-        """
-        if label == 'Config 0: Radial':
-            config_num = 0
-        elif label == 'Config 1: Radial+Center':
-            config_num = 1
-        else:  # Config 2: Dual-Ring
-            config_num = 2
+    #     Args:
+    #         label: Selected configuration label
+    #     """
+    #     if label == 'Config 0: Radial':
+    #         config_num = 0
+    #     elif label == 'Config 1: Radial+Center':
+    #         config_num = 1
+    #     else:  # Config 2: Dual-Ring
+    #         config_num = 2
         
-        # Update hardware configuration
-        led_alpha = np.deg2rad(self.sliders[8].val)
-        pd_alpha = np.deg2rad(self.sliders[9].val)
-        self.led_system.set_config(config_num, led_alpha)
-        self.pd_system.set_config(config_num, pd_alpha)
+    #     # Update hardware configuration
+    #     led_alpha = np.deg2rad(self.sliders[8].val)
+    #     pd_alpha = np.deg2rad(self.sliders[9].val)
+    #     self.led_system.set_config(config_num, led_alpha)
+    #     self.pd_system.set_config(config_num, pd_alpha)
         
-        # Update visualization
-        self.solve_and_update()
+    #     # Update visualization
+    #     self.solve_and_update()
     
     def on_slider_changed(self, val):
         """
@@ -679,47 +691,50 @@ class InteractiveMultiVisualizer:
         led_alpha = np.deg2rad(self.sliders[8].val)
         pd_alpha = np.deg2rad(self.sliders[9].val)
         
-        # Get current configuration from radio button
-        config_label = self.config_radio.value_selected
-        if config_label == 'Config 0: Radial':
-            config_num = 0
-        elif config_label == 'Config 1: Radial+Center':
-            config_num = 1
-        else:  # Config 2: Dual-Ring
-            config_num = 2
+        # # Get current configuration from radio button
+        # config_label = self.config_radio.value_selected
+        # if config_label == 'Config 0: Radial':
+        #     config_num = 0
+        # elif config_label == 'Config 1: Radial+Center':
+        #     config_num = 1
+        # else:  # Config 2: Dual-Ring
+        #     config_num = 2
             
-        self.led_system.set_config(config_num, led_alpha)
-        self.pd_system.set_config(config_num, pd_alpha)
+        self.led_system.set_config(self.led_system.config_num, led_alpha)
+        self.pd_system.set_config(self.pd_system.config_num, pd_alpha)
         
         # Update other parameters
-        self.pd_system.saturation_level = 10 ** self.sliders[10].val
+        self.pd_system.saturate = 10 ** self.sliders[10].val
         self.pd_system.shunt = 10 ** self.sliders[11].val
-        self.solver.gain = self.sliders[12].val
+        self.env.gain = self.sliders[12].val
         
         # Format display values for logarithmic sliders
-        self.sliders[7].valtext.set_text(f'{self.solver.bandwidth:.4E}')
-        self.sliders[6].valtext.set_text(f'{self.solver.background:.4E}')
-        self.sliders[10].valtext.set_text(f'{self.pd_system.saturation_level:.4E}')
+        self.sliders[7].valtext.set_text(f'{self.env.bandwidth:.4E}')
+        self.sliders[6].valtext.set_text(f'{self.env.background:.4E}')
+        self.sliders[10].valtext.set_text(f'{self.pd_system.saturate:.4E}')
         self.sliders[11].valtext.set_text(f'{self.pd_system.shunt:.4E}')
         
+        self.env.simulate_pd_sig()
+        self.solver.solve_mulmul()
+        self.clear_collections()
+
         # Update visualization
-        self.solve_and_update()
-    
-    def solve_and_update(self):
-        """Solve positioning problem and update visualization."""
+        self.generate_collections()
+
+    def clear_collections(self):
         # Remove old plots
         for sc in [self.sc1, self.sc2, self.sc3, self.sc4, self.sc5, self.sc6]:
-            if sc:
-                try:
-                    sc.remove()
-                except:
-                    pass
-        
+            sc.remove()
+
+    
+    def generate_collections(self):
+        """Solve positioning problem and update visualization."""
+  
         # Solve positioning problem
-        results = self.solver.solve_mulmul()
+        # self.solver.solve_mulmul()
         
         # Calculate counts and effective regions
-        error = results['error']
+        error = self.solver.error
         count_total = np.nansum(error < self.solver.tolerance)
         count_kpos = np.nansum(error < self.solver.tolerance, axis=1)
         count_krot = np.nansum(error < self.solver.tolerance, axis=0)
@@ -825,6 +840,7 @@ class ConfigOptimizer:
         self.led_system = led_system
         self.pd_system = pd_system
         self.solver = solver
+        self.env = solver.env
         self.best_params = {}
         self.best_score = 0
         
@@ -937,10 +953,10 @@ class ConfigOptimizer:
             f.write(f"\nSolver Configuration:\n")
             f.write(f"Tolerance: {self.solver.tolerance:.4f} m\n")
             f.write(f"Effective Ratio: {self.solver.effective:.1f}%\n")
-            f.write(f"Background Current: {self.solver.background:.4E} A\n")
-            f.write(f"Bandwidth: {self.solver.bandwidth:.4E} Hz\n")
-            f.write(f"PD Saturation Current: {self.pd_system.saturation_level:.4E} A\n")
+            f.write(f"Background Current: {self.env.background:.4E} A\n")
+            f.write(f"Bandwidth: {self.env.bandwidth:.4E} Hz\n")
+            f.write(f"PD Saturation Current: {self.pd_system.saturate:.4E} A\n")
             f.write(f"Shunt Resistance: {self.pd_system.shunt:.4E} Ohm\n")
-            f.write(f"Multipath Gain: {self.solver.gain:.2f}\n")
+            f.write(f"Multipath Gain: {self.env.gain:.2f}\n")
         
         print(f"Results saved to optimization_results.txt")

@@ -19,8 +19,8 @@ class Solver:
         # Frequent used layered variables
         # self.kpos = self.testp.kpos
         # self.krot = self.testp.krot
-        self.led_num = self.led_system.num
-        self.pd_num = self.pd_system.num
+
+        
         
         # Results
         self.ledu = None  # usable led num(int)
@@ -34,24 +34,26 @@ class Solver:
         """
         Solve the positioning problem for given test points.
         """
-        
+        self.env.simulate_pd_sig()
         # [kpos x krot x led_num x pd_num]
         light_f = self.env.light_output_filtered
 
+        led_num = self.led_system.num
+        pd_num = self.pd_system.num
         # Check which LEDs/PDs have enough valid signals
         # 3d data, not the ledu and pdu for amount
         led_usable = np.sum(~np.isnan(light_f), axis=3) > 2  # [kpos x krot x led_num]
         pd_usable = np.sum(~np.isnan(light_f), axis=2) > 2   # [kpos x krot x pd_num]
-        
+
         # Mask unusable LEDs/PDs
         # [kpos x krot x led_num x pd_num]
         light_led = np.ma.masked_array(
             light_f,
-            np.tile(~led_usable, (self.pd_num, 1, 1, 1)).transpose(1, 2, 3, 0)
+            np.tile(~led_usable, (pd_num, 1, 1, 1)).transpose(1, 2, 3, 0)
         )
         light_pd = np.ma.masked_array(
             light_f,
-            np.tile(~pd_usable, (self.led_num, 1, 1, 1)).transpose(1, 2, 0, 3)
+            np.tile(~pd_usable, (led_num, 1, 1, 1)).transpose(1, 2, 0, 3)
         )
         
         # Store usable counts
@@ -61,6 +63,7 @@ class Solver:
         # Get surface normal vectors
         nor_led, nor_pd, conf_led_ref, conf_pd_ref, led_data_other, pd_data_other = self._get_surface(light_led, light_pd)
         
+
         # Calculate possible position solutions
         cross_led, cross_pd = self._get_cross(
             led_data_other, pd_data_other, light_led, light_pd, 
@@ -102,11 +105,11 @@ class Solver:
         sol_out_ang = np.arccos(np.inner(self.ori_sol_led_coor, self.led_system.ori_car.T))  
         
         # Calculate distance
-        const = self.pd_system.respon * self.pd_system.area * self.led_system.pt * (self.led_num + 1) / (2 * np.pi)
+        const = self.pd_system.respon * self.pd_system.area * self.led_system.pt * (led_num + 1) / (2 * np.pi)
         sol_dis = np.sqrt(const * np.divide(
             np.multiply(
-                np.tile(np.power(np.cos(sol_in_ang), self.pd_system.m), (self.led_num, 1, 1, 1)).transpose(1, 2, 0, 3),
-                np.tile(np.power(np.cos(sol_out_ang), self.led_system.m), (self.pd_num, 1, 1, 1)).transpose(1, 2, 3, 0)
+                np.tile(np.power(np.cos(sol_in_ang), self.pd_system.m), (led_num, 1, 1, 1)).transpose(1, 2, 0, 3),
+                np.tile(np.power(np.cos(sol_out_ang), self.led_system.m), (pd_num, 1, 1, 1)).transpose(1, 2, 3, 0)
             ),
             light_f
         )) # kp, kr, l, p
@@ -144,10 +147,10 @@ class Solver:
         led_ori_car = self.led_system.ori_car
         pd_ori_car = self.pd_system.ori_car
 
-
         # Get reference points (maximum light intensity)
         ref1_led = np.nanargmax(light_led, axis=3)  # [kpos x krot x led_num]
         ref1_pd = np.nanargmax(light_pd, axis=2)    # [kpos x krot x pd_num]
+        
         
         # Create masks for reference points
         maskled = np.full(light_led.shape, False)

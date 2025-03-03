@@ -21,7 +21,7 @@ class Hardware:
         self.ori_ang = np.tile(np.array([[0, 0, 1]]).T, (1, num))  # angular representation: 3xnum
         self.ori_car = np.tile(np.array([[0, 0, 0]]).T, (1, num)) # Cartesian representation
         self.pos = np.tile(np.array([[0, 0, 0]]).T, (1, num))  # Position [3xnum]
-    
+        self.config_num = 1
     def ori_ang2cart(self, ori_ang) ->np.ndarray:
         """
         Set Cartesian orientation: angular to Cartesian coordinates.
@@ -48,6 +48,7 @@ class Hardware:
                 1: radial with center 放射狀，一個放中間
             alpha: Alpha(rad) 方位角
         """
+        self.config_num = config_num
         if config_num == 0:  # Radial pattern
             beta = np.deg2rad(360/self.num)  # Azimuth angle
             self.ori_ang = np.stack((
@@ -64,7 +65,8 @@ class Hardware:
             ), 0)  # 2x(num-1)
             self.ori_ang = np.concatenate((self.ori_ang, np.array([[0, 0]]).T), axis=1)
             self.ori_car = self.ori_ang2cart(self.ori_ang)  # 3xnum
-        
+        self.pos = np.tile(np.array([[0, 0, 0]]).T, (1, self.num))
+        # self.config_num = config_num
         ''' Dual ring with more arguments set
         elif config_num == 2:  # Dual ring 
             a = int(self.num * 0.4) # 內圈數量

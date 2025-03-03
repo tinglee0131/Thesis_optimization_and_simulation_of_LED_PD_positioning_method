@@ -82,8 +82,7 @@ class Environment:
         glob_led_pos = self.global_testp_trans(self.global_testp_after_rot(led_pos, testp_rot), testp_pos)
         # [kpos x krot x 3 x led_num]
         glob_led_ori = np.tile(self.global_testp_after_rot(led_ori_car, testp_rot), (kpos, 1, 1, 1)).transpose((0, 1, 3, 2))
-
-
+    
         # Transform PD positions to global coordinates
         # ^LP{H}
         # [krot x 3 x 3]
