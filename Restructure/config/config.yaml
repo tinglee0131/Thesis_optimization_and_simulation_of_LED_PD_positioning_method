@@ -16,18 +16,18 @@ system:
 application:
   mode: 'interactive_1to1'
   # 'analysis' #'scenario' #'draw_config'   # 'interactive_1to1' #'interactive_mulmul' #'optimize'
-  save_results: true
+  save_results: false
   weight_form: 'mean' # 'mean' or 'weight' calculating method
 
 led_system:
   hard_ind: 3 # led hardware config index(choose from datasheet)
-  num: 4 # led total amount
-  config_num: 0 # 0: radial 放射狀 #1: radial with center 放射狀，一個放中間
+  num: 9 # led total amount
+  config_num: 1 # 0: radial 放射狀 #1: radial with center 放射狀，一個放中間
   alpha: 50  #Alpha(DEG) 方位角
 
 pd_system:
   hard_ind: 2 # pd hardware config index(choose from datasheet)
-  num: 5 # pd total amount
-  config_num: 0 # 0: radial 放射狀 #1: radial with center 放射狀，一個放中間
+  num: 10 # pd total amount
+  config_num: 1 # 0: radial 放射狀 #1: radial with center 放射狀，一個放中間
   alpha: 50  #Alpha(DEG) 方位角
 
