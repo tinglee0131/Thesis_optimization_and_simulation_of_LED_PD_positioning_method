@@ -16,7 +16,7 @@ from src.core.scenario import TestPoint
 def set_plot_style():
     """Set default plotting style for consistent appearance."""
     # plt.rcParams['font.sans-serif'] = ['Arial Unicode MS']
-    plt.rcParams["font.family"] = "Noto Sans" 
+    plt.rcParams["font.family"] = "DejaVu Sans"
     plt.rcParams['axes.unicode_minus'] = False
 
 
@@ -190,8 +190,8 @@ def plot_analysis(test_point: TestPoint, error: np.ndarray, tolerance: float,
     colorbar = fig.colorbar(sc,shrink=0.3,pad=0.15)
     colorbar.ax.set_ylabel('# Sample Points within Tolerance')
     ax2.set_title('Rotation Sample Points')
-    ax2.text(1,1,'pitch(degree)',rotation = 15)
-    ax2.text(np.deg2rad(60),80,'yaw(degree)')
+    ax2.text(np.deg2rad(330), (15),'pitch(degree)',rotation = 15)
+    ax2.text(np.deg2rad(60), 190 ,'yaw(degree)')
     
     # Add summary stats
     count_total = np.nansum(error < tolerance)

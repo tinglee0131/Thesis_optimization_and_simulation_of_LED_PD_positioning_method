@@ -8,7 +8,7 @@ interactive widgets to help analyze and explore the positioning system.
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons, CheckButtons
-import matplotlib.cm as cm
+# import matplotlib.cm as cm
 import matplotlib.colors as colors
 from typing import Dict, Optional
 
@@ -57,7 +57,7 @@ class Interactive1To1Visualizer:
         self.solve_and_update()
     
     def setup_plot(self):
-        """Setup the 3D plot for visualization."""
+        """Setup the 3D plot for visualizatsion."""
         self.ax.set_box_aspect(aspect=(1, 1, 1))
         self.ax.set_xlabel('x')
         self.ax.set_ylabel('y')
@@ -131,11 +131,34 @@ class Interactive1To1Visualizer:
         self.ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1))
         
         # Add text for results
-        self.text_item = self.ax.text(-2.5, -2.5, -2, 'Solving...')
+        # self.text_item = self.ax.text(-2.5, -2.5, -2, 'Solving...')
         
         # Placeholders for solution visualization
         self.ans = None
         self.error_vec = None
+        self.text_item = None
+
+        pdu = self.solver.pdu[0,0]
+        ledu = self.solver.ledu[0,0]
+        error = self.solver.error[0,0]
+        dis = self.solver.sol_dis_av[0,0]
+        vec = self.solver.ori_sol_pd_coor[0,0,:]
+
+        if ledu==0 or pdu==0:
+            self.ans = self.ax.scatter(0,0,0,marker='x',color='k',s=10000)
+            self.text_item = self.ax.text(-2.5,-2.5,-2, f'Usable LED:{ledu} \nUsable PD:{pdu}\nError:{error}')
+            self.error_vec =self.ax.quiver (0,0,0,1,1,1,alpha=0,color = 'magenta')
+        else:
+            self.ans = self.ax.quiver(0,0,0,dis*vec[0],dis*vec[1],dis*vec[2],color='k')
+            self.text_item = self.ax.text(-2.5,-2.5,-2, f'Usable LED:{ledu} \nUsable PD:{pdu}\nError:{error:.4E}')
+            self.error_vec = self.quiver(dis*vec[0],dis*vec[1],dis*vec[2],self.env.testp.testp_pos[0,0]-dis*vec[0],self.env.testp.testp_pos[1,0]-dis*vec[1],self.env.testp.testp_pos[2,0]-dis*vec[2],color = 'magenta')
+
+
+        # print('finished set up')
+        # print(self.ax)
+        # print(self.ax.collections)
+        # print(self.sphere)
+        # print(self.sphere.remove())
     
     def setup_sliders(self):
         """Setup the sliders for interactive parameter adjustment."""
@@ -155,10 +178,10 @@ class Interactive1To1Visualizer:
             self.testp_pos.flatten(),
             self.testp_rot.flatten(),
             [self.led_system.num, self.pd_system.num,
-             self.led_system.lambertian_order, self.pd_system.lambertian_order,
-             np.log10(self.solver.background), np.log10(self.solver.bandwidth),
+             self.led_system.m, self.pd_system.m,
+             np.log10(self.env.background), np.log10(self.env.bandwidth),
              np.rad2deg(self.led_system.ori_ang[0, 0]), np.rad2deg(self.pd_system.ori_ang[0, 0]),
-             np.log10(self.pd_system.saturation_level), self.solver.gain]
+             np.log10(self.pd_system.saturate), self.env.gain]
         ])
         
         # Slider ranges
@@ -184,9 +207,9 @@ class Interactive1To1Visualizer:
             self.sliders.append(s)
         
         # Format display values for logarithmic sliders
-        self.sliders[11].valtext.set_text(f'{self.solver.bandwidth:.4E}')
-        self.sliders[10].valtext.set_text(f'{self.solver.background:.4E}')
-        self.sliders[14].valtext.set_text(f'{self.pd_system.saturation_level:.4E}')
+        self.sliders[11].valtext.set_text(f'{self.env.bandwidth:.4E}')
+        self.sliders[10].valtext.set_text(f'{self.env.background:.4E}')
+        self.sliders[14].valtext.set_text(f'{self.pd_system.saturate:.4E}')
         
         # Add reset button
         reset_ax = plt.axes([0.8, 0.025, 0.1, 0.04])
@@ -221,12 +244,12 @@ class Interactive1To1Visualizer:
         # Update hardware parameters
         self.led_system.num = int(self.sliders[6].val)
         self.pd_system.num = int(self.sliders[7].val)
-        self.led_system.lambertian_order = self.sliders[8].val
-        self.pd_system.lambertian_order = self.sliders[9].val
+        self.led_system.m = self.sliders[8].val
+        self.pd_system.m = self.sliders[9].val
         
         # Update solver parameters
-        self.solver.background = 10 ** self.sliders[10].val
-        self.solver.bandwidth = 10 ** self.sliders[11].val
+        self.env.background = 10 ** self.sliders[10].val
+        self.env.bandwidth = 10 ** self.sliders[11].val
         
         # Update hardware orientation
         led_alpha = np.deg2rad(self.sliders[12].val)
@@ -235,13 +258,13 @@ class Interactive1To1Visualizer:
         self.pd_system.set_config(0, pd_alpha)
         
         # Update saturation and gain
-        self.pd_system.saturation_level = 10 ** self.sliders[14].val
-        self.solver.gain = self.sliders[15].val
+        self.pd_system.saturate = 10 ** self.sliders[14].val
+        self.env.gain = self.sliders[15].val
         
         # Format display values for logarithmic sliders
-        self.sliders[11].valtext.set_text(f'{self.solver.bandwidth:.4E}')
-        self.sliders[10].valtext.set_text(f'{self.solver.background:.4E}')
-        self.sliders[14].valtext.set_text(f'{self.pd_system.saturation_level:.4E}')
+        self.sliders[11].valtext.set_text(f'{self.env.bandwidth:.4E}')
+        self.sliders[10].valtext.set_text(f'{self.env.background:.4E}')
+        self.sliders[14].valtext.set_text(f'{self.pd_system.saturate:.4E}')
         
         # Update visualization
         self.solve_and_update()
@@ -249,14 +272,11 @@ class Interactive1To1Visualizer:
     def solve_and_update(self):
         """Solve positioning problem and update visualization."""
         # Remove old elements
-        if self.sphere:
-            self.ax.collections.remove(self.sphere)
-        if self.axis_item:
-            self.ax.collections.remove(self.axis_item)
-        if self.ans:
-            self.ax.collections.remove(self.ans)
-        if self.error_vec:
-            self.ax.collections.remove(self.error_vec)
+
+        self.sphere.remove()
+        self.axis_item.remove()
+        self.ans.remove()
+        self.error_vec.remove()
         
         for text in self.led_text:
             if text:
@@ -305,17 +325,14 @@ class Interactive1To1Visualizer:
             'z', color='b'
         )
         
-        # Solve positioning problem
-        results = self.solver.solve(self.testp_pos, self.testp_rot)
         
         # Extract results
-        error = results['error'][0, 0]
-        ledu = results['led_usable'][0, 0]
-        pdu = results['pd_usable'][0, 0]
-        dis = results['distance'][0, 0]
-        vec = results['pd_orientation'][0, 0, :]
-        
-        # Update solution visualization
+        pdu = self.solver.pdu[0,0]
+        ledu = self.solver.ledu[0,0]
+        error = self.solver.error[0,0]
+        dis = self.solver.sol_dis_av[0,0]
+        vec = self.solver.ori_sol_pd_coor[0,0,:]
+
         if ledu == 0 or pdu == 0:
             self.ans = self.ax.scatter(0, 0, 0, marker='x', color='k', s=10000)
             self.text_item.set_text(f'Usable LED: {ledu} \nUsable PD: {pdu}\nError: -')
@@ -363,6 +380,7 @@ class InteractiveMultiVisualizer:
         self.led_system = led_system
         self.pd_system = pd_system
         self.solver = solver
+        self.env = solver.env
         self.scenario = scenario
         self.space_size = space_size
         self.rot_max = rot_max
@@ -539,11 +557,11 @@ class InteractiveMultiVisualizer:
         init_val = np.array([
             self.solver.tolerance, self.solver.effective,
             self.led_system.num, self.pd_system.num,
-            self.led_system.lambertian_order, self.pd_system.lambertian_order,
-            np.log10(self.solver.background), np.log10(self.solver.bandwidth),
+            self.led_system.m, self.pd_system.m,
+            np.log10(self.env.background), np.log10(self.env.bandwidth),
             np.rad2deg(self.led_system.ori_ang[0, 0]), np.rad2deg(self.pd_system.ori_ang[0, 0]),
-            np.log10(self.pd_system.saturation_level), np.log10(self.pd_system.shunt),
-            self.solver.gain
+            np.log10(self.pd_system.saturate), np.log10(self.pd_system.shunt),
+            self.env.gain
         ])
         
         # Slider ranges
@@ -563,9 +581,9 @@ class InteractiveMultiVisualizer:
             self.sliders.append(s)
         
         # Format display values for logarithmic sliders
-        self.sliders[7].valtext.set_text(f'{self.solver.bandwidth:.4E}')
-        self.sliders[6].valtext.set_text(f'{self.solver.background:.4E}')
-        self.sliders[10].valtext.set_text(f'{self.pd_system.saturation_level:.4E}')
+        self.sliders[7].valtext.set_text(f'{self.env.bandwidth:.4E}')
+        self.sliders[6].valtext.set_text(f'{self.env.background:.4E}')
+        self.sliders[10].valtext.set_text(f'{self.pd_system.saturate:.4E}')
         self.sliders[11].valtext.set_text(f'{self.pd_system.shunt:.4E}')
         
         # Add configuration selection
@@ -596,13 +614,13 @@ class InteractiveMultiVisualizer:
             f.write(f"Effective Ratio: {self.solver.effective:.1f}%\n")
             f.write(f"LED Count: {self.led_system.num}\n")
             f.write(f"PD Count: {self.pd_system.num}\n")
-            f.write(f"LED Lambertian Order: {self.led_system.lambertian_order:.2f}\n")
-            f.write(f"PD Lambertian Order: {self.pd_system.lambertian_order:.2f}\n")
-            f.write(f"Background Current: {self.solver.background:.4E} A\n")
-            f.write(f"Bandwidth: {self.solver.bandwidth:.4E} Hz\n")
+            f.write(f"LED Lambertian Order: {self.led_system.m:.2f}\n")
+            f.write(f"PD Lambertian Order: {self.pd_system.m:.2f}\n")
+            f.write(f"Background Current: {self.env.background:.4E} A\n")
+            f.write(f"Bandwidth: {self.env.bandwidth:.4E} Hz\n")
             f.write(f"LED Alpha Angle: {np.rad2deg(self.led_system.ori_ang[0, 0]):.1f} deg\n")
             f.write(f"PD Alpha Angle: {np.rad2deg(self.pd_system.ori_ang[0, 0]):.1f} deg\n")
-            f.write(f"PD Saturation Current: {self.pd_system.saturation_level:.4E} A\n")
+            f.write(f"PD Saturation Current: {self.pd_system.saturate:.4E} A\n")
             f.write(f"Resistor: {self.pd_system.shunt:.4E} Ohm\n")
             f.write(f"Multipath Gain: {self.solver.gain:.2f}\n\n")
             
@@ -650,12 +668,12 @@ class InteractiveMultiVisualizer:
         # Update hardware parameters
         self.led_system.num = int(self.sliders[2].val)
         self.pd_system.num = int(self.sliders[3].val)
-        self.led_system.lambertian_order = self.sliders[4].val
-        self.pd_system.lambertian_order = self.sliders[5].val
+        self.led_system.m = self.sliders[4].val
+        self.pd_system.m = self.sliders[5].val
         
         # Update logarithmic parameters
-        self.solver.background = 10 ** self.sliders[6].val
-        self.solver.bandwidth = 10 ** self.sliders[7].val
+        self.env.background = 10 ** self.sliders[6].val
+        self.env.bandwidth = 10 ** self.sliders[7].val
         
         # Update hardware orientation
         led_alpha = np.deg2rad(self.sliders[8].val)
@@ -698,7 +716,7 @@ class InteractiveMultiVisualizer:
                     pass
         
         # Solve positioning problem
-        results = self.solver.solve(self.test_point.testp_pos, self.test_point.testp_rot)
+        results = self.solver.solve_mulmul()
         
         # Calculate counts and effective regions
         error = results['error']
