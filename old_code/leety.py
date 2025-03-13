@@ -402,16 +402,16 @@ bandwidth = 370*10**3
 
 
 # 設定模式
-# mode = 'scenario'
-# mode = 'analysis'
-# mode = 'interactive_1to1'
-# mode = 'interactive_mulmul'
+# mode = 'scenario' # draw scenario
+mode = 'analysis' # draw analysis
 # mode = 'save'
-# mode = 'analysis_graph'
-mode = 'config_interactive'
+# mode = 'analysis_graph' # list out analysis for different
 # mode = 'effect_plot'
 # mode = 'draw_config'
 
+# mode = 'interactive_1to1'
+# mode = 'interactive_mulmul'
+# mode = 'config_interactive'
 
 scenario = 2
 config_num = 0

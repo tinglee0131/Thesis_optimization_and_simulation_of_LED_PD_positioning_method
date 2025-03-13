@@ -68,8 +68,10 @@ This project implements an visible light positioning system using LEDs and photo
 
         - volume bind mount to local machine: enable the local IDE while saving changes in container
         - display forward to local machine: for showing interactive figures
-            - need to connect docker to the local host 
+            - change container display to the host.docker.internal(a special domain name), and the number of display is 0(default map to 6000 port). The xhost is default to be listening at 6000 port.
+            - (Possible:) might need to set the host machine's authentication of xhost to be access by docker.
                 ```xhost +local:docker```
+                
   
 
 

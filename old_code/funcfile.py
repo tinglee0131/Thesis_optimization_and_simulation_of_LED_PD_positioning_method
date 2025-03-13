@@ -317,6 +317,7 @@ def interactive_btw_pdled(glob_led_pos,glob_led_ori,pd_pos,pd_ori_car):
     
     pos_delta = np.tile(glob_led_pos,(pd_num,1,1,1,1)).transpose((1,2,3,0,4)) \
         - np.tile(pd_pos.T,(kpos,krot,led_num,1,1))
+    
     dis = np.sqrt(np.sum(np.square(pos_delta),axis=4)) # krot,kpos,led_num,pd_num
     #print(dis)
     in_ang = np.arccos(np.divide(np.sum(np.multiply( np.tile(pd_ori_car.T,(kpos,krot,led_num,1,1)), pos_delta), axis=4), dis))

@@ -21,7 +21,7 @@ from src.core.scenario import TestPoint
 from src.core.solver_mulmul import Solver
 from src.core.simulate_env import Environment
 from src.visualization.plot import (
-    plot_scenario, plot_analysis, plot_effective_range, plot_hardware_configuration
+    plot_scenario, plot_analysis, plot_hardware_configuration
 )
 from src.visualization.interactive import (
     Interactive1To1Visualizer, InteractiveMultiVisualizer

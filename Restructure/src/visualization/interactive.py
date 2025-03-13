@@ -1,14 +1,13 @@
 """
-Interactive visualization tools for the positioning system.
+Interactive1To1Visualizer
+InteractiveNultiVisualizer
 
-This module provides interactive visualization tools based on Matplotlib's
-interactive widgets to help analyze and explore the positioning system.
+Provide interactive figure for users to visualize the result from simulation using sliders to adjust the configuration.
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, Button, RadioButtons, CheckButtons
-# import matplotlib.cm as cm
+from matplotlib.widgets import Slider
 import matplotlib.colors as colors
 from typing import Dict, Optional
 
@@ -367,14 +366,13 @@ class Interactive1To1Visualizer:
 
 class InteractiveMultiVisualizer:
     """
-    Interactive visualizer for multi-point analysis.
-    
-    This visualizer allows users to adjust various system parameters
-    and see the impact on positioning performance across many test points.
+    Interactive figure of preset scenario(test points) with adjustable configurations, 
+    visualizing the performance of the positioning system.
+
     """
     
     def __init__(self, led_system: LEDSystem, pd_system: PDSystem, 
-                 solver: Solver, scenario: int = 2, space_size: int = 10, rot_max: int = 180):
+                 solver: Solver, scenario:int=2, space_size:int=10, rot_max:int=180):
         """
         Initialize the interactive visualizer.
         
